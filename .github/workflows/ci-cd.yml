@@ -1,0 +1,48 @@
+name: CI/CD Hola Mundo DevOps
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Ejecutar pruebas
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Configurar .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Restaurar dependencias
+        run: dotnet restore HolaMundo.Tests/HolaMundo.Tests.csproj
+
+      - name: Ejecutar pruebas unitarias
+        run: dotnet test HolaMundo.Tests/HolaMundo.Tests.csproj --no-restore
+
+  docker:
+    name: Construir y subir Docker
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar codigo
+        uses: actions/checkout@v4
+
+      - name: Iniciar sesion en Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Construir y subir imagen
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/hola-mundo-devops:latest
