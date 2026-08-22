@@ -46,3 +46,16 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/hola-mundo-devops:latest
+
+  deploy:
+    name: Desplegar en Render
+    needs: docker
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Desplegar en Render
+        run: |
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            https://api.render.com/v1/services/srv-da4hsv6k1f9s73edlbdg/deploys
